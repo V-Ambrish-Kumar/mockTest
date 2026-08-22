@@ -19,6 +19,7 @@ class Topic(models.Model):
 class Question(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     text = models.TextField()
+    image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     time_to_answer = models.IntegerField(help_text="Time to answer in seconds")
     explanation = models.TextField(blank=True, null=True, help_text="Why is this answer correct?") 
 
@@ -35,11 +36,20 @@ class Option(models.Model):
 
 class Test(models.Model):
     title = models.CharField(max_length=200)
-    syllabus = models.TextField(help_text="Syllabus or topics covered")
+    # The 'syllabus' field is removed. We keep 'questions' but will hide it in Admin.
     questions = models.ManyToManyField(Question, blank=True)
 
     def __str__(self):
         return self.title
+
+# Add this new model below Test:
+class TestTopicRule(models.Model):
+    test = models.ForeignKey(Test, related_name='rules', on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    count = models.IntegerField(default=5, help_text="Number of questions to randomly pick")
+
+    def __str__(self):
+        return f"{self.topic.name} ({self.count} Qs)"
 
 # --- New Models for Users ---
 

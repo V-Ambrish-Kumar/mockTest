@@ -55,9 +55,11 @@ def take_test(request, attempt_id):
     attempt = get_object_or_404(TestAttempt, id=attempt_id, user=request.user)
     
     if attempt.completed:
-        return redirect('test_result', attempt_id=attempt.id) # We will write this view later
+        return redirect('test_result', attempt_id=attempt.id)
     
-    questions = attempt.test.questions.all()
+    # Add .order_by('?') to completely randomize the order of the mixed topics!
+    questions = attempt.test.questions.all().order_by('?')
+    
     return render(request, 'quiz/take_test.html', {'attempt': attempt, 'questions': questions})
 
 @login_required

@@ -1,48 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Your Dashboard</title>
-    <!-- Import Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; padding: 40px 20px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        .test-history { list-style: none; padding: 0; }
-        .test-history li { padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
-        .test-history li:last-child { border-bottom: none; }
-    </style>
-</head>
-<body>
+{% extends 'quiz/base.html' %}
 
-<div class="container">
-    <div class="card">
-        <h2>Performance Overview</h2>
-        <!-- Chart.js will draw the graph inside this canvas -->
-        <canvas id="scoreChart" width="400" height="150"></canvas>
-    </div>
+{% block title %}Your Dashboard{% endblock %}
 
-    <div class="card">
-        <h2>Recent Tests</h2>
-        <ul class="test-history">
-            {% for attempt in attempts %}
-                <li>
-                    <strong>{{ attempt.test.title }}</strong>
-                    <span>Score: {{ attempt.score|floatformat:0 }}</span>
-                    <a href="{% url 'test_result' attempt.id %}" style="color: #3b82f6; text-decoration: none;">View Details</a>
-                </li>
-            {% empty %}
-                <p>You haven't taken any tests yet!</p>
-            {% endfor %}
-        </ul>
-        <br>
-        <a href="{% url 'test_list' %}" style="padding: 10px 20px; background: #22c55e; color: white; text-decoration: none; border-radius: 6px;">Take a New Test</a>
-    </div>
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; }
+    .test-history { list-style: none; padding: 0; }
+    .test-history li { padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; }
+    .test-history li:last-child { border-bottom: none; }
+    .btn-new { display: inline-block; padding: 10px 20px; background: #22c55e; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;}
+</style>
+
+<div class="card">
+    <h2>Performance Overview</h2>
+    <canvas id="scoreChart" width="400" height="150"></canvas>
+</div>
+
+<div class="card">
+    <h2>Recent Tests</h2>
+    <ul class="test-history">
+        {% for attempt in attempts %}
+            <li>
+                <strong>{{ attempt.test.title }}</strong>
+                <span>Score: {{ attempt.score|floatformat:0 }}</span>
+                <a href="{% url 'test_result' attempt.id %}" style="color: #3b82f6; text-decoration: none; font-weight: bold;">View Details</a>
+            </li>
+        {% empty %}
+            <p>You haven't taken any tests yet!</p>
+        {% endfor %}
+    </ul>
+    <br>
+    <a href="{% url 'test_list' %}" class="btn-new">Take a New Test</a>
 </div>
 
 <script>
-    // Grab the JSON data passed from Django
     const labels = JSON.parse('{{ test_names|safe }}');
     const data = JSON.parse('{{ scores|safe }}');
 
@@ -58,20 +50,15 @@
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderWidth: 3,
                 fill: true,
-                tension: 0.3 // Adds a nice curve to the line
+                tension: 0.3
             }]
         },
         options: {
             responsive: true,
             scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Score' }
-                }
+                y: { beginAtZero: true, title: { display: true, text: 'Score' } }
             }
         }
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

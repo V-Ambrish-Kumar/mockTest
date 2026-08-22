@@ -1,0 +1,25 @@
+{% extends 'quiz/base.html' %}
+
+{% block title %}Available Tests{% endblock %}
+
+{% block content %}
+<style>
+    .test-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border-left: 5px solid #3b82f6; }
+    .btn-start { display: inline-block; margin-top: 15px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; }
+    .btn-start:hover { background: #2563eb; }
+</style>
+
+<h2 style="color: #1e293b;">Available Mock Tests</h2>
+
+{% for test in tests %}
+    <div class="test-card">
+        <h3 style="margin-top: 0;">{{ test.title }}</h3>
+        <p style="color: #64748b;">{{ test.syllabus }}</p>
+        <p><strong>Questions:</strong> {{ test.questions.count }}</p>
+        <a href="{% url 'start_test' test.id %}" class="btn-start">Start Test</a>
+    </div>
+{% empty %}
+    <p>No tests are available right now. Check back later!</p>
+{% endfor %}
+
+{% endblock %}
