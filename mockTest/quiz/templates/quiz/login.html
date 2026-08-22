@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Mock Test Platform</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .auth-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        .auth-card h2 { margin-top: 0; color: #1e293b; text-align: center; }
+        .form-group { margin-bottom: 20px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px; margin-top: 5px; }
+        .btn { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 6px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn:hover { background: #16a34a; }
+        .footer-text { text-align: center; margin-top: 20px; color: #64748b; font-size: 14px; }
+        .footer-text a { color: #3b82f6; text-decoration: none; }
+        .errorlist { color: #ef4444; font-size: 13px; padding-left: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="auth-card">
+    <h2>Welcome Back</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="errorlist">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn">Log In</button>
+    </form>
+    <div class="footer-text">
+        Need an account? <a href="{% url 'register' %}">Sign Up</a>
+    </div>
+</div>
+
+</body>
+</html>

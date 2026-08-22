@@ -1,0 +1,20 @@
+# Python environment and cache
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Django database and logs
+db.sqlite3
+db.sqlite3-journal
+*.log
+
+# Static and media files (these usually get hosted separately in production)
+media/
+staticfiles/
+
+# OS generated files
+.DS_Store
+Thumbs.db

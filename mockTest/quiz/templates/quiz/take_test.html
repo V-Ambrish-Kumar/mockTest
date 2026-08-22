@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test: {{ attempt.test.title }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .test-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 15px rgba(0,0,0,0.05); width: 100%; max-width: 700px; }
+        .question-container { display: none; }
+        .question-container.active { display: block; animation: fadeIn 0.3s; }
+        .option-btn { display: block; width: 100%; padding: 15px; margin: 12px 0; font-size: 16px; text-align: left; border: 2px solid #e2e8f0; border-radius: 8px; background: #fff; cursor: pointer; transition: 0.2s; }
+        .option-btn:hover { border-color: #3b82f6; background: #eff6ff; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; }
+        .timer { font-size: 1.2em; font-weight: bold; color: #ef4444; background: #fee2e2; padding: 8px 15px; border-radius: 20px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="test-card">
+    <div class="header-bar">
+        <h2>{{ attempt.test.title }}</h2>
+        <div class="timer">⏱️ <span id="time">--</span>s</div>
+    </div>
+
+    <!-- Hidden form just to easily grab the CSRF token for the fetch request -->
+    <form id="csrf-form">{% csrf_token %}</form>
+
+    <div id="questions-wrapper">
+        {% for q in questions %}
+        <div class="question-container" data-id="{{ q.id }}" data-time="{{ q.time_to_answer }}">
+            <h4 style="color: #64748b; margin-top: 0;">Question {{ forloop.counter }} of {{ questions.count }}</h4>
+            <h3 style="margin-bottom: 25px;">{{ q.text }}</h3>
+            
+            {% for option in q.options.all %}
+                <button class="option-btn" onclick="submitAnswer({{ q.id }}, {{ option.id }})">{{ option.text }}</button>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    const attemptId = {{ attempt.id }};
+    const finishUrl = "{% url 'finish_test' attempt.id %}";
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    let currentIdx = 0;
+    const questions = document.querySelectorAll('.question-container');
+    let timerInterval;
+
+    function showQuestion(index) {
+        if (index >= questions.length) {
+            window.location.href = finishUrl; // No more questions, auto-finish
+            return;
+        }
+        
+        // Hide all, show current
+        questions.forEach(q => q.classList.remove('active'));
+        const currentQ = questions[index];
+        currentQ.classList.add('active');
+        
+        // Start timer for this specific question
+        const seconds = parseInt(currentQ.getAttribute('data-time'));
+        startTimer(seconds, currentQ.getAttribute('data-id'));
+    }
+
+    function startTimer(seconds, questionId) {
+        clearInterval(timerInterval);
+        document.getElementById('time').innerText = seconds;
+        
+        timerInterval = setInterval(() => {
+            seconds--;
+            document.getElementById('time').innerText = seconds;
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+                submitAnswer(questionId, null); // Null means time ran out (unanswered)
+            }
+        }, 1000);
+    }
+
+    function submitAnswer(questionId, optionId) {
+        clearInterval(timerInterval); // Stop timer immediately when they click
+        
+        fetch('/ajax/save_answer/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                attempt_id: attemptId,
+                question_id: questionId,
+                option_id: optionId
+            })
+        }).then(response => {
+            if(response.ok) {
+                currentIdx++;
+                showQuestion(currentIdx); // Move to next question instantly
+            } else {
+                alert("Something went wrong saving your answer. Check your connection.");
+            }
+        }).catch(err => console.error("Error:", err));
+    }
+
+    // Initialize the first question
+    if(questions.length > 0) {
+        showQuestion(0);
+    } else {
+        document.getElementById('questions-wrapper').innerHTML = "<h3>No questions in this test!</h3>";
+    }
+</script>
+
+</body>
+</html>
